@@ -1,6 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dev/Screens/registration_screen.dart';
+import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_dev/utilities/constant.dart';
+import 'package:http/http.dart' as http;
+import '../config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -8,6 +14,50 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  bool _isNotValidate = false;
+  late SharedPreferences prefs;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    initSharedPref();
+  }
+
+  void initSharedPref() async {
+    prefs = await SharedPreferences.getInstance();
+  }
+
+  void loginUser() async {
+    print('in loginUser1');
+
+    var reqBody = {
+      "email": emailController.text,
+      "password": passwordController.text
+    };
+    var response = await http.post(Uri.parse(login),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+
+    print('in loginUser3');
+
+    var jsonResponse = jsonDecode(response.body);
+
+    if (jsonResponse['status']) {
+      var myToken = jsonResponse['token'];
+      prefs.setString('token', myToken);
+      // Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: (context) => Registration(token: myToken)));
+      print('Success login');
+    } else {
+      print('Something went wrong');
+    }
+  }
+
   bool _rememberMe = false;
 
   Widget _buildEmailTF() {
@@ -24,7 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: kBoxDecorationStyle,
           height: 60.0,
           child: TextField(
-            keyboardType: TextInputType.emailAddress,
+            controller: emailController,
+            keyboardType: TextInputType.text,
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'OpenSans',
@@ -59,6 +110,8 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: kBoxDecorationStyle,
           height: 60.0,
           child: TextField(
+            controller: passwordController,
+            keyboardType: TextInputType.text,
             obscureText: true,
             style: TextStyle(
               color: Colors.white,
@@ -80,54 +133,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Widget _buildForgotPasswordBtn() {
-  //   return Container(
-  //     alignment: Alignment.centerRight,
-  //     child: FlatButton(
-  //       onPressed: () => print('Forgot Password Button Pressed'),
-  //       padding: EdgeInsets.only(right: 0.0),
-  //       child: Text(
-  //         'Forgot Password?',
-  //         style: kLabelStyle,
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildRememberMeCheckbox() {
-  //   return Container(
-  //     height: 20.0,
-  //     child: Row(
-  //       children: <Widget>[
-  //         Theme(
-  //           data: ThemeData(unselectedWidgetColor: Colors.white),
-  //           child: Checkbox(
-  //             value: _rememberMe,
-  //             checkColor: Colors.green,
-  //             activeColor: Colors.white,
-  //             onChanged: (value) {
-  //               setState(() {
-  //                 _rememberMe = value;
-  //               });
-  //             },
-  //           ),
-  //         ),
-  //         Text(
-  //           'Remember me',
-  //           style: kLabelStyle,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildLoginBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: Colors.black),
-        onPressed: () => print('Login Button Pressed'),
+        onPressed: () {
+          loginUser();
+          print('Login Button Pressed');
+        },
         child: Text(
           'LOGIN',
           style: TextStyle(
@@ -142,75 +157,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Widget _buildSignInWithText() {
-  //   return Column(
-  //     children: <Widget>[
-  //       Text(
-  //         '- OR -',
-  //         style: TextStyle(
-  //           color: Colors.white,
-  //           fontWeight: FontWeight.w400,
-  //         ),
-  //       ),
-  //       SizedBox(height: 20.0),
-  //       Text(
-  //         'Sign in with',
-  //         style: kLabelStyle,
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildSocialBtn(Function onTap, AssetImage logo) {
-  //   return GestureDetector(
-  //     onTap: onTap,
-  //     child: Container(
-  //       height: 60.0,
-  //       width: 60.0,
-  //       decoration: BoxDecoration(
-  //         shape: BoxShape.circle,
-  //         color: Colors.white,
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.black26,
-  //             offset: Offset(0, 2),
-  //             blurRadius: 6.0,
-  //           ),
-  //         ],
-  //         image: DecorationImage(
-  //           image: logo,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildSocialBtnRow() {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(vertical: 30.0),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //       children: <Widget>[
-  //         _buildSocialBtn(
-  //           () => print('Login with Facebook'),
-  //           AssetImage(
-  //             'assets/logos/facebook.jpg',
-  //           ),
-  //         ),
-  //         _buildSocialBtn(
-  //           () => print('Login with Google'),
-  //           AssetImage(
-  //             'assets/logos/google.jpg',
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildSignupBtn() {
     return GestureDetector(
-      onTap: () => print('Sign Up Button Pressed'),
+      onTap: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Registration()));
+        print('Sign Up Button Pressed');
+      },
       child: RichText(
         text: TextSpan(
           children: [
