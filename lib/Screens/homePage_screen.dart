@@ -8,12 +8,12 @@ import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
 
-class Registration extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _RegistrationState createState() => _RegistrationState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _RegistrationState extends State<Registration> {
+class _HomePageState extends State<HomePage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool _isNotValidate = false;
@@ -30,119 +30,17 @@ class _RegistrationState extends State<Registration> {
     prefs = await SharedPreferences.getInstance();
   }
 
-  void registerUser() async {
-    print('in registerUser1');
-
-    var reqBody = {
-      "email": emailController.text,
-      "password": passwordController.text
-    };
-    var response = await http.post(Uri.parse(register),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(reqBody));
-
-    print('in registerUser3');
-
-    var jsonResponse = jsonDecode(response.body);
-
-    if (jsonResponse['status']) {
-      var myToken = jsonResponse['token'];
-      prefs.setString('token', myToken);
-      // Navigator.push(context,
-      //     MaterialPageRoute(builder: (context) => Dashboard(token: myToken)));
-      print('Success register');
-    } else {
-      print('Something went wrong');
-    }
-  }
-
-  bool _rememberMe = false;
-
-  Widget _buildEmailTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Email',
-          style: kLabelStyle,
-        ),
-        SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: kBoxDecorationStyle,
-          height: 60.0,
-          child: TextField(
-            controller: emailController,
-            keyboardType: TextInputType.text,
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'OpenSans',
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.email,
-                color: Colors.white,
-              ),
-              hintText: 'Enter your Email',
-              hintStyle: kHintTextStyle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Password',
-          style: kLabelStyle,
-        ),
-        SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: kBoxDecorationStyle,
-          height: 60.0,
-          child: TextField(
-            controller: passwordController,
-            keyboardType: TextInputType.text,
-            obscureText: true,
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'OpenSans',
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.lock,
-                color: Colors.white,
-              ),
-              hintText: 'Enter your Password',
-              hintStyle: kHintTextStyle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRegisterBtn() {
+  Widget _buildVoiceLearnBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: Colors.black),
         onPressed: () {
-          registerUser();
-          print('register Button Pressed');
+          print('Voice Learn Button Pressed');
         },
         child: Text(
-          'Register',
+          'Voice learn',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -218,7 +116,7 @@ class _RegistrationState extends State<Registration> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        'Registration',
+                        'Home Page',
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'OpenSans',
@@ -227,12 +125,10 @@ class _RegistrationState extends State<Registration> {
                         ),
                       ),
                       SizedBox(height: 30.0),
-                      _buildEmailTF(),
                       SizedBox(
                         height: 30.0,
                       ),
-                      _buildPasswordTF(),
-                      _buildRegisterBtn(),
+                      _buildVoiceLearnBtn(),
                       _buildbackBtn(),
                     ],
                   ),

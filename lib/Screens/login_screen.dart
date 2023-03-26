@@ -7,6 +7,7 @@ import 'package:flutter_dev/utilities/constant.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dev/Screens/homePage_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -31,8 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void loginUser() async {
-    print('in loginUser1');
-
     var reqBody = {
       "email": emailController.text,
       "password": passwordController.text
@@ -41,17 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
 
-    print('in loginUser3');
-
     var jsonResponse = jsonDecode(response.body);
 
     if (jsonResponse['status']) {
       var myToken = jsonResponse['token'];
       prefs.setString('token', myToken);
-      // Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: (context) => Registration(token: myToken)));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomePage()));
       print('Success login');
     } else {
       print('Something went wrong');
