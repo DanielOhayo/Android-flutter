@@ -32,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void loginUser() async {
+    print("dani ");
     var reqBody = {
       "email": emailController.text,
       "password": passwordController.text
@@ -41,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode(reqBody));
 
     var jsonResponse = jsonDecode(response.body);
-
+    print("dani " + response.body);
     if (jsonResponse['status']) {
       var myToken = jsonResponse['token'];
       prefs.setString('token', myToken);

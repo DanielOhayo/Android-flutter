@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
+import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -38,6 +39,8 @@ class _HomePageState extends State<HomePage> {
         style: ElevatedButton.styleFrom(primary: Colors.black),
         onPressed: () {
           print('Voice Learn Button Pressed');
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => VoiceLearn()));
         },
         child: Text(
           'Voice learn',
