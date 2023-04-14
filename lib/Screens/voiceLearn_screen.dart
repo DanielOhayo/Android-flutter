@@ -9,8 +9,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/audioList_screen.dart';
-import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound_lite/flutter_sound.dart';
+import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
+import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
+import 'package:flutter_sound_lite/public/tau.dart';
+import 'package:flutter_sound_lite/public/ui/recorder_playback_controller.dart';
+import 'package:flutter_sound_lite/public/ui/sound_player_ui.dart';
+import 'package:flutter_sound_lite/public/ui/sound_recorder_ui.dart';
+import 'package:flutter_sound_lite/public/util/enum_helper.dart';
+import 'package:flutter_sound_lite/public/util/flutter_sound_ffmpeg.dart';
+import 'package:flutter_sound_lite/public/util/flutter_sound_helper.dart';
+import 'package:flutter_sound_lite/public/util/temp_file_system.dart';
+import 'package:flutter_sound_lite/public/util/wave_header.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:audio_session/audio_session.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'dart:io';
 
 class VoiceLearn extends StatefulWidget {
@@ -32,19 +46,18 @@ class _VoiceLearnState extends State<VoiceLearn> {
 
   @override
   void dispose() {
-    recorder.closeRecorder();
-
+    recorder.closeAudioSession();
     super.dispose();
   }
 
   void initRecorder() async {
+    print("dani here");
     final status = await Permission.microphone.request();
-
     if (status != PermissionStatus.granted) {
       throw 'Microphone permission not granted';
     }
 
-    await recorder.openRecorder();
+    await recorder.openAudioSession();
     isRecorderReady = true;
     recorder.setSubscriptionDuration(
       const Duration(milliseconds: 500),
@@ -52,7 +65,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
   }
 
   Future record() async {
-    await recorder.startRecorder(toFile: 'audio');
+    await recorder.startRecorder(toFile: 'audio.aac');
     print("Recordddddddd");
   }
 
@@ -68,23 +81,13 @@ class _VoiceLearnState extends State<VoiceLearn> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: Colors.black),
-        onPressed: () {
-          print('Back Button Pressed');
+      child: IconButton(
+        icon: Icon(Icons.arrow_back),
+        iconSize: 50,
+        onPressed: () async {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => HomePage()));
         },
-        child: Text(
-          'Back (to home page)',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
       ),
     );
   }
@@ -101,7 +104,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
               context, MaterialPageRoute(builder: (context) => AudioList()));
         },
         child: Text(
-          'play',
+          ' Play the recorded audio',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -116,7 +119,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Color.fromARGB(255, 115, 174, 245),
       body: Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         StreamBuilder<RecordingDisposition>(

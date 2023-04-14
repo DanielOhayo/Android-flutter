@@ -37,10 +37,11 @@ class _LoginScreenState extends State<LoginScreen> {
       "email": emailController.text,
       "password": passwordController.text
     };
+
     var response = await http.post(Uri.parse(login),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-
+    print("dani2 ");
     var jsonResponse = jsonDecode(response.body);
     print("dani " + response.body);
     if (jsonResponse['status']) {

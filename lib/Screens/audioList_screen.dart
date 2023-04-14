@@ -10,11 +10,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
-import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound_lite/flutter_sound.dart';
+import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
+import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
+import 'package:flutter_sound_lite/public/tau.dart';
+import 'package:flutter_sound_lite/public/ui/recorder_playback_controller.dart';
+import 'package:flutter_sound_lite/public/ui/sound_player_ui.dart';
+import 'package:flutter_sound_lite/public/ui/sound_recorder_ui.dart';
+import 'package:flutter_sound_lite/public/util/enum_helper.dart';
+import 'package:flutter_sound_lite/public/util/flutter_sound_ffmpeg.dart';
+import 'package:flutter_sound_lite/public/util/flutter_sound_helper.dart';
+import 'package:flutter_sound_lite/public/util/temp_file_system.dart';
+import 'package:flutter_sound_lite/public/util/wave_header.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:process_run/process_run.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter/services.dart';
+// final pathToReadAudio = '/data/user/0/com.example.flutter_dev/cache/audio';
 
 class AudioList extends StatefulWidget {
   @override
@@ -23,18 +41,22 @@ class AudioList extends StatefulWidget {
 
 class _AudioListState extends State<AudioList> {
   final audioPlayer = AudioPlayer();
+  TextEditingController feedbackController = TextEditingController();
+
   bool isPlaying = false;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
+    initSharedPref();
     setAudio();
+
     // audioPlayer.onPlayerStateChanged.listen((state) {
     //   setState(() {
     //     isPlaying = state == PlayerState.PLAYING;
-    //   });
     // });
     audioPlayer.onDurationChanged.listen((newDuration) {
       setState(() {
@@ -50,32 +72,49 @@ class _AudioListState extends State<AudioList> {
   }
 
   Future setAudio() async {
-    audioPlayer.setUrl('/data/user/0/com.example.flutter_dev/cache/audio');
-
-    // final result = await FilePicker.platform.pickFiles();
-    print('setAudio1');
+    final url = 'data/user/0/com.example.flutter_dev/cache/audio.aac';
+    audioPlayer.setUrl(url);
   }
 
   @override
   void dispose() {
     audioPlayer.dispose();
-
     super.dispose();
   }
 
-  Widget _buildbackBtn() {
+  void initSharedPref() async {
+    prefs = await SharedPreferences.getInstance();
+  }
+
+  void createMel_script() async {
+    var reqBody = {
+      "email": feedbackController.text,
+    };
+    var response = await http.post(Uri.parse(createMel),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    print("dani2 ");
+    var jsonResponse = jsonDecode(response.body);
+    print("dani " + response.body);
+    if (jsonResponse['status']) {
+      print(jsonResponse['success']);
+    } else {
+      print('Something went wrong');
+    }
+  }
+
+  Widget _buildMelBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: Colors.black),
+        style: ElevatedButton.styleFrom(
+            primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
-          print('Back Button Pressed');
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => VoiceLearn()));
+          createMel_script();
         },
         child: Text(
-          'Back (to home page)',
+          'Create MelSpectrogram',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -84,6 +123,21 @@ class _AudioListState extends State<AudioList> {
             fontFamily: 'OpenSans',
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildbackBtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0),
+      width: double.infinity,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back),
+        iconSize: 50,
+        onPressed: () async {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => VoiceLearn()));
+        },
       ),
     );
   }
@@ -114,6 +168,7 @@ class _AudioListState extends State<AudioList> {
                 await audioPlayer.seek(position);
 
                 await audioPlayer.resume();
+                setState(() {});
               },
             ),
             Padding(
@@ -137,14 +192,12 @@ class _AudioListState extends State<AudioList> {
                   if (isPlaying) {
                     await audioPlayer.pause();
                   } else {
-                    // print("here");
-
-                    // await audioPlayer.play(source);
                     await audioPlayer.resume();
                   }
                 },
               ),
             ),
+            _buildMelBtn(),
             _buildbackBtn(),
           ],
         ),

@@ -159,23 +159,13 @@ class _RegistrationState extends State<Registration> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: Colors.black),
-        onPressed: () {
-          print('Back Button Pressed');
+      child: IconButton(
+        icon: Icon(Icons.arrow_back),
+        iconSize: 50,
+        onPressed: () async {
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => LoginScreen()));
         },
-        child: Text(
-          'Back (to login page)',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
       ),
     );
   }
