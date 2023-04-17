@@ -103,6 +103,40 @@ class _AudioListState extends State<AudioList> {
     }
   }
 
+  void Voice2DB_script() async {
+    var reqBody = {
+      "email": "dani", //TODO: take email from db
+    };
+    var response = await http.post(Uri.parse(recognizeDB),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    print("dani2 ");
+    var jsonResponse = jsonDecode(response.body);
+    print("dani " + response.body);
+    if (jsonResponse['status']) {
+      print(jsonResponse['success']);
+    } else {
+      print('Something went wrong');
+    }
+  }
+
+  void Recognition_script() async {
+    var reqBody = {
+      "email": feedbackController.text,
+    };
+    var response = await http.post(Uri.parse(recognize),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    print("dani2 ");
+    var jsonResponse = jsonDecode(response.body);
+    print("dani " + response.body);
+    if (jsonResponse['status']) {
+      print(jsonResponse['success']);
+    } else {
+      print('Something went wrong');
+    }
+  }
+
   Widget _buildMelBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
@@ -111,10 +145,61 @@ class _AudioListState extends State<AudioList> {
         style: ElevatedButton.styleFrom(
             primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
+          print("you press on Create MelSpectrogram");
           createMel_script();
         },
         child: Text(
           'Create MelSpectrogram',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            letterSpacing: 1.5,
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVoice2DBBtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0),
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            primary: Color.fromARGB(255, 115, 174, 245)),
+        onPressed: () {
+          print("you press on Rcognition button");
+          Voice2DB_script();
+        },
+        child: Text(
+          'Add my voice to DB',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            letterSpacing: 1.5,
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecognitionBtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0),
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            primary: Color.fromARGB(255, 115, 174, 245)),
+        onPressed: () {
+          print("you press on Rcognition button");
+          Recognition_script();
+        },
+        child: Text(
+          'Check if recognize me',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -198,6 +283,8 @@ class _AudioListState extends State<AudioList> {
               ),
             ),
             _buildMelBtn(),
+            _buildVoice2DBBtn(),
+            _buildRecognitionBtn(),
             _buildbackBtn(),
           ],
         ),

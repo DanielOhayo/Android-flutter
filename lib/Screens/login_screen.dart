@@ -32,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void loginUser() async {
-    print("dani ");
     var reqBody = {
       "email": emailController.text,
       "password": passwordController.text
