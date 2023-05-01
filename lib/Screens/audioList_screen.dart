@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
+import 'package:flutter_dev/Screens/checkRecognition.dart';
 import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
@@ -72,8 +73,9 @@ class _AudioListState extends State<AudioList> {
   }
 
   Future setAudio() async {
-    final url = 'data/user/0/com.example.flutter_dev/cache/audio.aac';
-    audioPlayer.setUrl(url);
+    final pathToReadAudio =
+        'data/user/0/com.example.flutter_dev/cache/audio.aac';
+    audioPlayer.setUrl(pathToReadAudio);
   }
 
   @override
@@ -86,23 +88,6 @@ class _AudioListState extends State<AudioList> {
     prefs = await SharedPreferences.getInstance();
   }
 
-  void createMel_script() async {
-    var reqBody = {
-      "email": feedbackController.text,
-    };
-    var response = await http.post(Uri.parse(createMel),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(reqBody));
-    print("dani2 ");
-    var jsonResponse = jsonDecode(response.body);
-    print("dani " + response.body);
-    if (jsonResponse['status']) {
-      print(jsonResponse['success']);
-    } else {
-      print('Something went wrong');
-    }
-  }
-
   void Voice2DB_script() async {
     var reqBody = {
       "email": "dani", //TODO: take email from db
@@ -110,9 +95,7 @@ class _AudioListState extends State<AudioList> {
     var response = await http.post(Uri.parse(recognizeDB),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-    print("dani2 ");
     var jsonResponse = jsonDecode(response.body);
-    print("dani " + response.body);
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
     } else {
@@ -120,46 +103,19 @@ class _AudioListState extends State<AudioList> {
     }
   }
 
-  void Recognition_script() async {
+  void Emotion_script() async {
     var reqBody = {
       "email": feedbackController.text,
     };
-    var response = await http.post(Uri.parse(recognize),
+    var response = await http.post(Uri.parse(emotion),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-    print("dani2 ");
     var jsonResponse = jsonDecode(response.body);
-    print("dani " + response.body);
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
     } else {
       print('Something went wrong');
     }
-  }
-
-  Widget _buildMelBtn() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            primary: Color.fromARGB(255, 115, 174, 245)),
-        onPressed: () {
-          print("you press on Create MelSpectrogram");
-          createMel_script();
-        },
-        child: Text(
-          'Create MelSpectrogram',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildVoice2DBBtn() {
@@ -196,10 +152,37 @@ class _AudioListState extends State<AudioList> {
             primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
           print("you press on Rcognition button");
-          Recognition_script();
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => CheckRecognition()));
+          // Recognition_script();
         },
         child: Text(
           'Check if recognize me',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            letterSpacing: 1.5,
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmotionBtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0),
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            primary: Color.fromARGB(255, 115, 174, 245)),
+        onPressed: () {
+          print("you press on Emotion Rcognition button");
+          Emotion_script();
+        },
+        child: Text(
+          'Check if my emotion',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -282,9 +265,9 @@ class _AudioListState extends State<AudioList> {
                 },
               ),
             ),
-            _buildMelBtn(),
             _buildVoice2DBBtn(),
             _buildRecognitionBtn(),
+            _buildEmotionBtn(),
             _buildbackBtn(),
           ],
         ),
