@@ -1,29 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:velocity_x/velocity_x.dart';
-import 'package:flutter_dev/utilities/constant.dart';
-import 'package:http/http.dart' as http;
-import '../config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dev/Screens/login_screen.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/audioList_screen.dart';
 import 'package:flutter_sound_lite/flutter_sound.dart';
-import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
-import 'package:flutter_sound_lite/public/tau.dart';
-import 'package:flutter_sound_lite/public/ui/recorder_playback_controller.dart';
-import 'package:flutter_sound_lite/public/ui/sound_player_ui.dart';
-import 'package:flutter_sound_lite/public/ui/sound_recorder_ui.dart';
-import 'package:flutter_sound_lite/public/util/enum_helper.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_ffmpeg.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_helper.dart';
-import 'package:flutter_sound_lite/public/util/temp_file_system.dart';
-import 'package:flutter_sound_lite/public/util/wave_header.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:audio_session/audio_session.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'dart:io';
 
@@ -34,7 +14,7 @@ class VoiceLearn extends StatefulWidget {
 
 class _VoiceLearnState extends State<VoiceLearn> {
   final recorder = FlutterSoundRecorder();
-
+  bool isStoped = false;
   bool isRecorderReady = false;
 
   @override
@@ -73,6 +53,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
     if (!isRecorderReady) return;
     final path = await recorder.stopRecorder();
     final audioFile = File(path!);
+    isStoped = true;
 
     print('Recorde audio: $audioFile');
   }
@@ -92,17 +73,18 @@ class _VoiceLearnState extends State<VoiceLearn> {
     );
   }
 
+  void navigate() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => AudioList()));
+  }
+
   Widget _buildPlayBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: Colors.black),
-        onPressed: () {
-          print('Back Button Pressed');
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => AudioList()));
-        },
+        onPressed: !isStoped ? null : navigate,
         child: Text(
           ' Play the recorded audio',
           style: TextStyle(
@@ -120,48 +102,62 @@ class _VoiceLearnState extends State<VoiceLearn> {
   @override
   Widget build(BuildContext context) => Scaffold(
       backgroundColor: Color.fromARGB(255, 115, 174, 245),
-      body: Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        StreamBuilder<RecordingDisposition>(
-          stream: recorder.onProgress,
-          builder: (context, snapshot) {
-            final duration =
-                snapshot.hasData ? snapshot.data!.duration : Duration.zero;
-            String twoDigits(int n) => n.toString().padLeft(2, "0");
-            final twoDigitsMinutes =
-                twoDigits(duration.inMinutes.remainder(60));
-            final twoDigitsSeconds =
-                twoDigits(duration.inSeconds.remainder(60));
+      body: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                Text(
+                  'Voice Learn',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontFamily: 'OpenSans',
+                    fontSize: 60,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                StreamBuilder<RecordingDisposition>(
+                  stream: recorder.onProgress,
+                  builder: (context, snapshot) {
+                    final duration = snapshot.hasData
+                        ? snapshot.data!.duration
+                        : Duration.zero;
+                    String twoDigits(int n) => n.toString().padLeft(2, "0");
+                    final twoDigitsMinutes =
+                        twoDigits(duration.inMinutes.remainder(60));
+                    final twoDigitsSeconds =
+                        twoDigits(duration.inSeconds.remainder(60));
 
-            return Text(
-              '$twoDigitsMinutes:$twoDigitsSeconds',
-              style: const TextStyle(
-                fontSize: 80,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          child: Icon(
-            recorder.isRecording ? Icons.stop : Icons.mic,
-            size: 80,
-          ),
-          onPressed: () async {
-            if (recorder.isRecording) {
-              await stop();
-            } else {
-              await record();
-            }
-            recorder.isRecording
-                ? print('Record Button Pressed')
-                : print('Stop Button Pressed');
-            setState(() {});
-          },
-        ),
-        _buildPlayBtn(),
-        _buildbackBtn(),
-      ])));
+                    return Text(
+                      '$twoDigitsMinutes:$twoDigitsSeconds',
+                      style: const TextStyle(
+                        fontSize: 40,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  child: Icon(
+                    recorder.isRecording ? Icons.stop : Icons.mic,
+                    size: 80,
+                  ),
+                  onPressed: () async {
+                    if (recorder.isRecording) {
+                      await stop();
+                    } else {
+                      await record();
+                    }
+                    recorder.isRecording
+                        ? print('Record Button Pressed')
+                        : print('Stop Button Pressed');
+                    setState(() {});
+                  },
+                ),
+                _buildPlayBtn(),
+                _buildbackBtn(),
+              ]))));
 }

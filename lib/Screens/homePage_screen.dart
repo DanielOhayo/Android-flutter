@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:velocity_x/velocity_x.dart';
-import 'package:flutter_dev/utilities/constant.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController passwordController = TextEditingController();
   bool _isNotValidate = false;
   late SharedPreferences prefs;
-  bool val_ = true;
+  bool val_ = false;
   //for recording
   FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
   int _recordingDuration = 5; // duration of the recording in seconds
@@ -45,11 +43,64 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future openDialog() => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("you are in danger"),
+          actions: [
+            TextButton(
+              child: Text('close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
+
+  void EmotionRcognition() async {
+    var reqBody = {
+      "email": "",
+    };
+    var response = await http.post(Uri.parse(emotion),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    var jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['status']) {
+      print(jsonResponse['success']);
+      String emotion = "fear"; ////replace in th response from server
+      //replace in the user name from db
+      if (emotion == "fear") {
+        openDialog();
+      }
+    } else {
+      print('Something went wrong');
+    }
+  }
+
+  void RecognitionUserVoice() async {
+    var reqBody = {
+      "email": "",
+    };
+    var response = await http.post(Uri.parse(recognize),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    var jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['status']) {
+      print(jsonResponse['success']);
+      String userName = "Dani"; //replace in th response from server
+      if (userName == "Dani") {
+        //replace in the user name from db
+        EmotionRcognition();
+      }
+    } else {
+      print('Something went wrong');
+    }
+  }
+
   void StartRecordLoop() async {
     // request permission to access the device's microphone
-
     await Permission.microphone.request();
-
     // start recording
     await _audioRecorder.openAudioSession();
     microphoneRecorder.init();
@@ -63,8 +114,8 @@ class _HomePageState extends State<HomePage> {
     Timer(Duration(seconds: _recordingDuration), () {
       // call py script with input "C:\Users\ohayo\AppData\Local\Google\AndroidStudio2022.1\device-explorer\samsung-sm_g960f-2ab8a93c423f7ece\data\data\com.example.flutter_dev\cache\audio_5_sec.aac"
       print("stop record background");
-
       StopRecordLoop();
+      RecognitionUserVoice();
     });
   }
 
@@ -201,9 +252,9 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         'Home Page',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontFamily: 'OpenSans',
-                          fontSize: 30.0,
+                          fontSize: 60,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -1,38 +1,13 @@
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:velocity_x/velocity_x.dart';
-import 'package:flutter_dev/utilities/constant.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dev/Screens/login_screen.dart';
-import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
 import 'package:flutter_dev/Screens/checkRecognition.dart';
-import 'package:flutter_sound_lite/flutter_sound.dart';
-import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
-import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
-import 'package:flutter_sound_lite/public/tau.dart';
-import 'package:flutter_sound_lite/public/ui/recorder_playback_controller.dart';
-import 'package:flutter_sound_lite/public/ui/sound_player_ui.dart';
-import 'package:flutter_sound_lite/public/ui/sound_recorder_ui.dart';
-import 'package:flutter_sound_lite/public/util/enum_helper.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_ffmpeg.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_helper.dart';
-import 'package:flutter_sound_lite/public/util/temp_file_system.dart';
-import 'package:flutter_sound_lite/public/util/wave_header.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:process_run/process_run.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/services.dart';
+
 // final pathToReadAudio = '/data/user/0/com.example.flutter_dev/cache/audio';
 
 class AudioList extends StatefulWidget {
@@ -88,6 +63,30 @@ class _AudioListState extends State<AudioList> {
     prefs = await SharedPreferences.getInstance();
   }
 
+  Future openDialog(text) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+          actions: [
+            TextButton(
+              child: Text('close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('check if recognize me'),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CheckRecognition()));
+              },
+            )
+          ],
+        ),
+      );
+
   void Voice2DB_script() async {
     var reqBody = {
       "email": "dani", //TODO: take email from db
@@ -98,8 +97,10 @@ class _AudioListState extends State<AudioList> {
     var jsonResponse = jsonDecode(response.body);
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
+      openDialog("Your voice added to DB");
     } else {
       print('Something went wrong');
+      openDialog("Somthing went wrong, try again");
     }
   }
 
@@ -143,33 +144,6 @@ class _AudioListState extends State<AudioList> {
     );
   }
 
-  Widget _buildRecognitionBtn() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            primary: Color.fromARGB(255, 115, 174, 245)),
-        onPressed: () {
-          print("you press on Rcognition button");
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => CheckRecognition()));
-          // Recognition_script();
-        },
-        child: Text(
-          'Check if recognize me',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmotionBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
@@ -182,7 +156,7 @@ class _AudioListState extends State<AudioList> {
           Emotion_script();
         },
         child: Text(
-          'Check if my emotion',
+          'Check my emotion',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -221,7 +195,7 @@ class _AudioListState extends State<AudioList> {
               borderRadius: BorderRadius.circular(20),
             ),
             const Text(
-              'The Flutter Audio',
+              'My Recored Audio',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -266,8 +240,7 @@ class _AudioListState extends State<AudioList> {
               ),
             ),
             _buildVoice2DBBtn(),
-            _buildRecognitionBtn(),
-            _buildEmotionBtn(),
+            // _buildEmotionBtn(),
             _buildbackBtn(),
           ],
         ),
