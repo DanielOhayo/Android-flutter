@@ -8,6 +8,7 @@ import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import '../global.dart';
 
 class CheckRecognition extends StatefulWidget {
   @override
@@ -80,6 +81,7 @@ class _CheckRecognitionState extends State<CheckRecognition> {
             TextButton(
               child: Text('yes'),
               onPressed: () {
+                isDoneLevels = true;
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => HomePage()));
               },
@@ -98,18 +100,24 @@ class _CheckRecognitionState extends State<CheckRecognition> {
       );
 
   void Recognition_script() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
     var reqBody = {
-      "email": " feedbackController.text",
+      "email": userName,
     };
     var response = await http.post(Uri.parse(recognize),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
     var jsonResponse = jsonDecode(response.body);
+    Navigator.of(context).pop();
     if (jsonResponse['status']) {
-      print(jsonResponse['success']);
-      String userName = "Dani"; //replace in th response from server
-      openDialog("The voice belong to ${userName}, it's your voice?");
+      openDialog("your voice recognize with name ${userName}, it's you?");
     } else {
+      openDialog('Something went wrong');
       print('Something went wrong');
     }
   }

@@ -31,7 +31,6 @@ class _VoiceLearnState extends State<VoiceLearn> {
   }
 
   void initRecorder() async {
-    print("dani here");
     final status = await Permission.microphone.request();
     if (status != PermissionStatus.granted) {
       throw 'Microphone permission not granted';
@@ -74,6 +73,8 @@ class _VoiceLearnState extends State<VoiceLearn> {
   }
 
   void navigate() {
+    AudioList ff = new AudioList();
+
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => AudioList()));
   }

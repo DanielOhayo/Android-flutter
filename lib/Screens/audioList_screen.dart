@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
 import 'package:flutter_dev/Screens/checkRecognition.dart';
 import 'dart:async';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../global.dart';
 
 // final pathToReadAudio = '/data/user/0/com.example.flutter_dev/cache/audio';
 
@@ -23,6 +25,7 @@ class _AudioListState extends State<AudioList> {
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   late SharedPreferences prefs;
+  var _isLoading = false;
 
   @override
   void initState() {
@@ -88,34 +91,26 @@ class _AudioListState extends State<AudioList> {
       );
 
   void Voice2DB_script() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
     var reqBody = {
-      "email": "dani", //TODO: take email from db
+      "email": userName,
     };
     var response = await http.post(Uri.parse(recognizeDB),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
     var jsonResponse = jsonDecode(response.body);
+    Navigator.of(context).pop();
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
       openDialog("Your voice added to DB");
     } else {
       print('Something went wrong');
       openDialog("Somthing went wrong, try again");
-    }
-  }
-
-  void Emotion_script() async {
-    var reqBody = {
-      "email": feedbackController.text,
-    };
-    var response = await http.post(Uri.parse(emotion),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(reqBody));
-    var jsonResponse = jsonDecode(response.body);
-    if (jsonResponse['status']) {
-      print(jsonResponse['success']);
-    } else {
-      print('Something went wrong');
     }
   }
 
@@ -128,35 +123,11 @@ class _AudioListState extends State<AudioList> {
             primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
           print("you press on Rcognition button");
-          Voice2DB_script();
+          openRecord();
+          // Voice2DB_script();
         },
         child: Text(
           'Add my voice to DB',
-          style: TextStyle(
-            color: Color.fromARGB(255, 255, 255, 255),
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmotionBtn() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            primary: Color.fromARGB(255, 115, 174, 245)),
-        onPressed: () {
-          print("you press on Emotion Rcognition button");
-          Emotion_script();
-        },
-        child: Text(
-          'Check my emotion',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -183,6 +154,93 @@ class _AudioListState extends State<AudioList> {
       ),
     );
   }
+
+  Future _loadingDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _loading() {
+    if (_isLoading) {
+      return SpinKitCircle(
+        size: 140,
+        itemBuilder: (context, index) {
+          final colors = [Colors.white, Colors.pink];
+          final color = colors[index % colors.length];
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: color,
+            ),
+          );
+        },
+      );
+    } else {
+      return Text('hi');
+    }
+  }
+
+  Future openRecord() => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    Slider(
+                      min: 0,
+                      max: duration.inSeconds.toDouble(),
+                      value: position.inSeconds.toDouble(),
+                      onChanged: (value) async {
+                        Duration(seconds: value.toInt());
+                        await audioPlayer.seek(position);
+                        await audioPlayer.resume();
+                        setState(() {});
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(position.toString()),
+                          Text(duration.toString()),
+                        ],
+                      ),
+                    ),
+                    CircleAvatar(
+                      radius: 35,
+                      child: IconButton(
+                        icon: Icon(
+                          isPlaying ? Icons.pause : Icons.play_arrow,
+                        ),
+                        iconSize: 50,
+                        onPressed: () async {
+                          if (isPlaying) {
+                            await audioPlayer.pause();
+                          } else {
+                            await audioPlayer.resume();
+                          }
+                        },
+                      ),
+                    ),
+                    _buildVoice2DBBtn(),
+                  ],
+                ),
+              ));
+        },
+      );
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -239,8 +297,8 @@ class _AudioListState extends State<AudioList> {
                 },
               ),
             ),
+            // _loading(),
             _buildVoice2DBBtn(),
-            // _buildEmotionBtn(),
             _buildbackBtn(),
           ],
         ),

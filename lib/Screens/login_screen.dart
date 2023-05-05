@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
+import '../global.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -21,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     initSharedPref();
   }
@@ -29,6 +29,21 @@ class _LoginScreenState extends State<LoginScreen> {
   void initSharedPref() async {
     prefs = await SharedPreferences.getInstance();
   }
+
+  Future openDialog(text) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+          actions: [
+            TextButton(
+              child: Text('close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
 
   void loginUser() async {
     var reqBody = {
@@ -39,17 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
     var response = await http.post(Uri.parse(login),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-    print("dani2 ");
     var jsonResponse = jsonDecode(response.body);
-    print("dani " + response.body);
     if (jsonResponse['status']) {
+      userName = emailController.text;
       var myToken = jsonResponse['token'];
       prefs.setString('token', myToken);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
-      print('Success login');
+      print(jsonResponse['success']);
     } else {
-      print('Something went wrong');
+      openDialog(jsonResponse['success'] + ", please try again");
+      print(jsonResponse['success']);
     }
   }
 
