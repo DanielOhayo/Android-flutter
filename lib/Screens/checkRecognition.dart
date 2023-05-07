@@ -1,18 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../config.dart';
 import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/audioList_screen.dart';
 import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'dart:io';
+import '../global.dart';
 
-class VoiceLearn extends StatefulWidget {
+class CheckRecognition extends StatefulWidget {
   @override
-  _VoiceLearnState createState() => _VoiceLearnState();
+  _CheckRecognitionState createState() => _CheckRecognitionState();
 }
 
-class _VoiceLearnState extends State<VoiceLearn> {
+class _CheckRecognitionState extends State<CheckRecognition> {
   final recorder = FlutterSoundRecorder();
   bool isStoped = false;
   bool isRecorderReady = false;
@@ -44,8 +47,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
   }
 
   Future record() async {
-    await recorder.startRecorder(toFile: 'audio.aac');
-    print("Recordddddddd");
+    await recorder.startRecorder(toFile: 'audioCheck.aac');
   }
 
   Future stop() async {
@@ -53,7 +55,6 @@ class _VoiceLearnState extends State<VoiceLearn> {
     final path = await recorder.stopRecorder();
     final audioFile = File(path!);
     isStoped = true;
-
     print('Recorde audio: $audioFile');
   }
 
@@ -66,17 +67,59 @@ class _VoiceLearnState extends State<VoiceLearn> {
         iconSize: 50,
         onPressed: () async {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => HomePage()));
+              context, MaterialPageRoute(builder: (context) => AudioList()));
         },
       ),
     );
   }
 
-  void navigate() {
-    AudioList ff = new AudioList();
+  Future openDialog(text) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+          actions: [
+            TextButton(
+              child: Text('yes'),
+              onPressed: () {
+                isDoneLevels = true;
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => HomePage()));
+              },
+            ),
+            TextButton(
+              child: Text("no, I'll try again"),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CheckRecognition()));
+              },
+            )
+          ],
+        ),
+      );
 
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => AudioList()));
+  void Recognition_script() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+    var reqBody = {
+      "email": userName,
+    };
+    var response = await http.post(Uri.parse(recognize),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    var jsonResponse = jsonDecode(response.body);
+    Navigator.of(context).pop();
+    if (jsonResponse['status']) {
+      openDialog("your voice recognize with name ${userName}, it's you?");
+    } else {
+      openDialog('Something went wrong');
+      print('Something went wrong');
+    }
   }
 
   Widget _buildPlayBtn() {
@@ -85,9 +128,9 @@ class _VoiceLearnState extends State<VoiceLearn> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: Colors.black),
-        onPressed: !isStoped ? null : navigate,
+        onPressed: !isStoped ? null : Recognition_script,
         child: Text(
-          ' Play the recorded audio',
+          ' check if recognize me',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -109,15 +152,6 @@ class _VoiceLearnState extends State<VoiceLearn> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                Text(
-                  'Voice Learn',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: 'OpenSans',
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 StreamBuilder<RecordingDisposition>(
                   stream: recorder.onProgress,
                   builder: (context, snapshot) {
@@ -133,7 +167,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
                     return Text(
                       '$twoDigitsMinutes:$twoDigitsSeconds',
                       style: const TextStyle(
-                        fontSize: 40,
+                        fontSize: 80,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),

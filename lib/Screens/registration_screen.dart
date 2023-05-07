@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_dev/utilities/constant.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
@@ -31,8 +30,6 @@ class _RegistrationState extends State<Registration> {
   }
 
   void registerUser() async {
-    print('in registerUser1');
-
     var reqBody = {
       "email": emailController.text,
       "password": passwordController.text
@@ -40,9 +37,6 @@ class _RegistrationState extends State<Registration> {
     var response = await http.post(Uri.parse(register),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-
-    print('in registerUser3');
-
     var jsonResponse = jsonDecode(response.body);
 
     if (jsonResponse['status']) {

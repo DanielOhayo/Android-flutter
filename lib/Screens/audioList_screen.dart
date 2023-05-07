@@ -1,37 +1,15 @@
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:velocity_x/velocity_x.dart';
-import 'package:flutter_dev/utilities/constant.dart';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dev/Screens/login_screen.dart';
-import 'package:flutter_dev/Screens/homePage_screen.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
-import 'package:flutter_sound_lite/flutter_sound.dart';
-import 'package:flutter_sound_lite/public/flutter_sound_player.dart';
-import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
-import 'package:flutter_sound_lite/public/tau.dart';
-import 'package:flutter_sound_lite/public/ui/recorder_playback_controller.dart';
-import 'package:flutter_sound_lite/public/ui/sound_player_ui.dart';
-import 'package:flutter_sound_lite/public/ui/sound_recorder_ui.dart';
-import 'package:flutter_sound_lite/public/util/enum_helper.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_ffmpeg.dart';
-import 'package:flutter_sound_lite/public/util/flutter_sound_helper.dart';
-import 'package:flutter_sound_lite/public/util/temp_file_system.dart';
-import 'package:flutter_sound_lite/public/util/wave_header.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:process_run/process_run.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_dev/Screens/checkRecognition.dart';
 import 'dart:async';
-import 'dart:io';
-import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../global.dart';
+
 // final pathToReadAudio = '/data/user/0/com.example.flutter_dev/cache/audio';
 
 class AudioList extends StatefulWidget {
@@ -47,6 +25,7 @@ class _AudioListState extends State<AudioList> {
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
   late SharedPreferences prefs;
+  var _isLoading = false;
 
   @override
   void initState() {
@@ -72,8 +51,9 @@ class _AudioListState extends State<AudioList> {
   }
 
   Future setAudio() async {
-    final url = 'data/user/0/com.example.flutter_dev/cache/audio.aac';
-    audioPlayer.setUrl(url);
+    final pathToReadAudio =
+        'data/user/0/com.example.flutter_dev/cache/audio.aac';
+    audioPlayer.setUrl(pathToReadAudio);
   }
 
   @override
@@ -86,24 +66,55 @@ class _AudioListState extends State<AudioList> {
     prefs = await SharedPreferences.getInstance();
   }
 
-  void createMel_script() async {
+  Future openDialog(text) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+          actions: [
+            TextButton(
+              child: Text('close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('check if recognize me'),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CheckRecognition()));
+              },
+            )
+          ],
+        ),
+      );
+
+  void Voice2DB_script() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
     var reqBody = {
-      "email": feedbackController.text,
+      "email": userName,
     };
-    var response = await http.post(Uri.parse(createMel),
+    var response = await http.post(Uri.parse(recognizeDB),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
-    print("dani2 ");
     var jsonResponse = jsonDecode(response.body);
-    print("dani " + response.body);
+    Navigator.of(context).pop();
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
+      openDialog("Your voice added to DB");
     } else {
       print('Something went wrong');
+      openDialog("Somthing went wrong, try again");
     }
   }
 
-  Widget _buildMelBtn() {
+  Widget _buildVoice2DBBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
@@ -111,10 +122,12 @@ class _AudioListState extends State<AudioList> {
         style: ElevatedButton.styleFrom(
             primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
-          createMel_script();
+          print("you press on Rcognition button");
+          openRecord();
+          // Voice2DB_script();
         },
         child: Text(
-          'Create MelSpectrogram',
+          'Add my voice to DB',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -142,6 +155,93 @@ class _AudioListState extends State<AudioList> {
     );
   }
 
+  Future _loadingDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _loading() {
+    if (_isLoading) {
+      return SpinKitCircle(
+        size: 140,
+        itemBuilder: (context, index) {
+          final colors = [Colors.white, Colors.pink];
+          final color = colors[index % colors.length];
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: color,
+            ),
+          );
+        },
+      );
+    } else {
+      return Text('hi');
+    }
+  }
+
+  Future openRecord() => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    Slider(
+                      min: 0,
+                      max: duration.inSeconds.toDouble(),
+                      value: position.inSeconds.toDouble(),
+                      onChanged: (value) async {
+                        Duration(seconds: value.toInt());
+                        await audioPlayer.seek(position);
+                        await audioPlayer.resume();
+                        setState(() {});
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(position.toString()),
+                          Text(duration.toString()),
+                        ],
+                      ),
+                    ),
+                    CircleAvatar(
+                      radius: 35,
+                      child: IconButton(
+                        icon: Icon(
+                          isPlaying ? Icons.pause : Icons.play_arrow,
+                        ),
+                        iconSize: 50,
+                        onPressed: () async {
+                          if (isPlaying) {
+                            await audioPlayer.pause();
+                          } else {
+                            await audioPlayer.resume();
+                          }
+                        },
+                      ),
+                    ),
+                    _buildVoice2DBBtn(),
+                  ],
+                ),
+              ));
+        },
+      );
+
   @override
   Widget build(BuildContext context) => Scaffold(
           body: Padding(
@@ -153,7 +253,7 @@ class _AudioListState extends State<AudioList> {
               borderRadius: BorderRadius.circular(20),
             ),
             const Text(
-              'The Flutter Audio',
+              'My Recored Audio',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -197,7 +297,8 @@ class _AudioListState extends State<AudioList> {
                 },
               ),
             ),
-            _buildMelBtn(),
+            // _loading(),
+            _buildVoice2DBBtn(),
             _buildbackBtn(),
           ],
         ),
