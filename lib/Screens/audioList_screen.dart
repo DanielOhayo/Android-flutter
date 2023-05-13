@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
 import 'package:flutter_dev/Screens/checkRecognition.dart';
 import 'dart:async';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../global.dart';
 
 // final pathToReadAudio = '/data/user/0/com.example.flutter_dev/cache/audio';
@@ -37,6 +36,7 @@ class _AudioListState extends State<AudioList> {
     //   setState(() {
     //     isPlaying = state == PlayerState.PLAYING;
     // });
+
     audioPlayer.onDurationChanged.listen((newDuration) {
       setState(() {
         duration = newDuration;
@@ -80,6 +80,7 @@ class _AudioListState extends State<AudioList> {
             TextButton(
               child: Text('check if recognize me'),
               onPressed: () {
+                inHomePage = false;
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -123,8 +124,7 @@ class _AudioListState extends State<AudioList> {
             primary: Color.fromARGB(255, 115, 174, 245)),
         onPressed: () {
           print("you press on Rcognition button");
-          openRecord();
-          // Voice2DB_script();
+          Voice2DB_script();
         },
         child: Text(
           'Add my voice to DB',
@@ -153,34 +153,6 @@ class _AudioListState extends State<AudioList> {
         },
       ),
     );
-  }
-
-  Future _loadingDialog() async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Center(child: CircularProgressIndicator());
-      },
-    );
-  }
-
-  Widget _loading() {
-    if (_isLoading) {
-      return SpinKitCircle(
-        size: 140,
-        itemBuilder: (context, index) {
-          final colors = [Colors.white, Colors.pink];
-          final color = colors[index % colors.length];
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              color: color,
-            ),
-          );
-        },
-      );
-    } else {
-      return Text('hi');
-    }
   }
 
   Future openRecord() => showDialog(
@@ -244,20 +216,16 @@ class _AudioListState extends State<AudioList> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-          body: Padding(
+      appBar: AppBar(
+        title: Text('My Recored Audio'),
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-            ),
-            const Text(
-              'My Recored Audio',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
             ),
             Slider(
               min: 0,
@@ -297,7 +265,6 @@ class _AudioListState extends State<AudioList> {
                 },
               ),
             ),
-            // _loading(),
             _buildVoice2DBBtn(),
             _buildbackBtn(),
           ],

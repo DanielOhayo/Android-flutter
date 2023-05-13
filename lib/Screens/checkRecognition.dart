@@ -146,6 +146,9 @@ class _CheckRecognitionState extends State<CheckRecognition> {
   @override
   Widget build(BuildContext context) => Scaffold(
       backgroundColor: Color.fromARGB(255, 115, 174, 245),
+      appBar: AppBar(
+        title: Text('Check if recognize me'),
+      ),
       body: Padding(
           padding: const EdgeInsets.all(20),
           child: Center(

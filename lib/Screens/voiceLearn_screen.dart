@@ -4,6 +4,7 @@ import 'package:flutter_dev/Screens/audioList_screen.dart';
 import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../global.dart';
 
 import 'dart:io';
 
@@ -73,7 +74,7 @@ class _VoiceLearnState extends State<VoiceLearn> {
   }
 
   void navigate() {
-    AudioList ff = new AudioList();
+    inHomePage = false;
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => AudioList()));
@@ -103,21 +104,15 @@ class _VoiceLearnState extends State<VoiceLearn> {
   @override
   Widget build(BuildContext context) => Scaffold(
       backgroundColor: Color.fromARGB(255, 115, 174, 245),
+      appBar: AppBar(
+        title: Text('Voice Learn'),
+      ),
       body: Padding(
           padding: const EdgeInsets.all(20),
           child: Center(
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                Text(
-                  'Voice Learn',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontFamily: 'OpenSans',
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 StreamBuilder<RecordingDisposition>(
                   stream: recorder.onProgress,
                   builder: (context, snapshot) {

@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_dev/Screens/recordingState.dart';
 
 void main() {
-  runApp(MyApp());
+  // runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => RecordingState(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
