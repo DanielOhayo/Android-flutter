@@ -45,6 +45,28 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
+  void isReadyListening() async {
+    var reqBody = {
+      "email": emailController.text,
+    };
+
+    var response = await http.post(Uri.parse(levels),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    var jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['status']) {
+      print("yes");
+      isDoneLevels = true;
+      print(jsonResponse['success']);
+    } else {
+      print("no");
+
+      isDoneLevels = false;
+      openDialog(jsonResponse['success'] + ", please try again");
+      print(jsonResponse['success']);
+    }
+  }
+
   void loginUser() async {
     var reqBody = {
       "email": emailController.text,
@@ -59,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
       userName = emailController.text;
       var myToken = jsonResponse['token'];
       prefs.setString('token', myToken);
+      isReadyListening();
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
       print(jsonResponse['success']);

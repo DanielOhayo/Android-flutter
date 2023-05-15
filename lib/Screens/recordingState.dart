@@ -87,7 +87,7 @@ class RecordingState extends ChangeNotifier {
     }
   }
 
-  void startRecording() async {
+  Future<void> startRecording() async {
     _isRecording = true;
     await Permission.microphone.request();
     // start recording
@@ -96,26 +96,26 @@ class RecordingState extends ChangeNotifier {
 
     microphoneRecorder.start();
     _audioRecorder.startRecorder(toFile: 'audio_5_sec.aac');
-
+    await Future.delayed(Duration(seconds: 5));
+    await _audioRecorder.stopRecorder();
+    await _audioRecorder.closeAudioSession();
+    RecognitionUserVoice();
+    await Future.delayed(Duration(seconds: 60));
     // schedule the recording to stop after the specified duration
 
     print("record background");
-    Timer(Duration(seconds: _recordingDuration), () {
-      // call py script with input "C:\Users\ohayo\AppData\Local\Google\AndroidStudio2022.1\device-explorer\samsung-sm_g960f-2ab8a93c423f7ece\data\data\com.example.flutter_dev\cache\audio_5_sec.aac"
-      print("stop record background");
-      stopRecording_5_sec();
-      // RecognitionUserVoice();
-    });
-    notifyListeners();
-  }
 
-  void stopRecording_5_sec() async {
-    _isRecording = false;
-    await _audioRecorder.stopRecorder();
-    await _audioRecorder.closeAudioSession();
-    await _microphoneStreamSubscription?.cancel();
-    _microphoneStreamSubscription = null;
-    startRecording();
+    // Timer(Duration(seconds: _recordingDuration), () async {
+    //   // Stop recording
+    //   await _audioRecorder.stopRecorder();
+    //   // Pause for 5 seconds
+    //   await Future.delayed(Duration(seconds: 5));
+    //   //   print("stop record background");
+    //   //   // RecognitionUserVoice();
+    //   _audioRecorder.startRecorder(toFile: 'audio_5_sec.aac');
+    // });
+    notifyListeners();
+    await startRecording();
   }
 
   void stopRecording() async {
