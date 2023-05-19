@@ -98,8 +98,10 @@ class _AudioListState extends State<AudioList> {
         return Center(child: CircularProgressIndicator());
       },
     );
+
     var reqBody = {
       "email": userName,
+      "file": "audio.aac",
     };
     var response = await http.post(Uri.parse(recognizeDB),
         headers: {"Content-Type": "application/json"},
@@ -112,6 +114,32 @@ class _AudioListState extends State<AudioList> {
     } else {
       print('Something went wrong');
       openDialog("Somthing went wrong, try again");
+    }
+  }
+
+  void Voice2DB_script_1() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse(recognizeDB),
+    );
+// Add the email as a field in the request body
+    request.fields['email'] = userName;
+
+    // Add the audio file to the request
+    request.files.add(await http.MultipartFile.fromPath(
+        'file', 'data/user/0/com.example.flutter_dev/cache/audio.aac'));
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      print('File uploaded successfully.');
+    } else {
+      print('Error uploading file: ${response.reasonPhrase}');
     }
   }
 

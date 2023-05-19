@@ -108,6 +108,7 @@ class _CheckRecognitionState extends State<CheckRecognition> {
     );
     var reqBody = {
       "email": userName,
+      "file": "audioCheck.aac",
     };
     var response = await http.post(Uri.parse(recognize),
         headers: {"Content-Type": "application/json"},

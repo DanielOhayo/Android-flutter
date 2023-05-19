@@ -69,19 +69,16 @@ class RecordingState extends ChangeNotifier {
 
   void RecognitionUserVoice() async {
     var reqBody = {
-      "email": "",
+      "email": userName,
+      "file": "audio_5_sec.aac",
     };
     var response = await http.post(Uri.parse(recognize),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
     var jsonResponse = jsonDecode(response.body);
     if (jsonResponse['status']) {
-      print(jsonResponse['success']);
-      String userName = "Dani"; //replace in th response from server
-      if (userName == "Dani") {
-        //replace in the user name from db
-        EmotionRcognition();
-      }
+      print("your voice recognize with name ${userName}, it's you?");
+      EmotionRcognition();
     } else {
       print('Something went wrong');
     }
@@ -115,7 +112,9 @@ class RecordingState extends ChangeNotifier {
     //   _audioRecorder.startRecorder(toFile: 'audio_5_sec.aac');
     // });
     notifyListeners();
-    await startRecording();
+    if (_isRecording) {
+      await startRecording();
+    }
   }
 
   void stopRecording() async {
