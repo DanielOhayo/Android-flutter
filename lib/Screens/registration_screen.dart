@@ -15,6 +15,8 @@ class Registration extends StatefulWidget {
 class _RegistrationState extends State<Registration> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController emergencyNumberController = TextEditingController();
+
   bool _isNotValidate = false;
   late SharedPreferences prefs;
 
@@ -32,7 +34,8 @@ class _RegistrationState extends State<Registration> {
   void registerUser() async {
     var reqBody = {
       "email": emailController.text,
-      "password": passwordController.text
+      "password": passwordController.text,
+      "emergencyNumber": emergencyNumberController.text
     };
     var response = await http.post(Uri.parse(register),
         headers: {"Content-Type": "application/json"},
@@ -93,7 +96,7 @@ class _RegistrationState extends State<Registration> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Password',
+          'password',
           style: kLabelStyle,
         ),
         SizedBox(height: 10.0),
@@ -117,6 +120,43 @@ class _RegistrationState extends State<Registration> {
                 color: Colors.white,
               ),
               hintText: 'Enter your Password',
+              hintStyle: kHintTextStyle,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNumberTF() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Emergency number',
+          style: kLabelStyle,
+        ),
+        SizedBox(height: 10.0),
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: kBoxDecorationStyle,
+          height: 60.0,
+          child: TextField(
+            controller: emergencyNumberController,
+            keyboardType: TextInputType.text,
+            obscureText: true,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: 14.0),
+              prefixIcon: Icon(
+                Icons.lock,
+                color: Colors.white,
+              ),
+              hintText: 'Enter an emergency number phone',
               hintStyle: kHintTextStyle,
             ),
           ),
@@ -216,6 +256,7 @@ class _RegistrationState extends State<Registration> {
                         height: 30.0,
                       ),
                       _buildPasswordTF(),
+                      _buildNumberTF(),
                       _buildRegisterBtn(),
                       _buildbackBtn(),
                     ],

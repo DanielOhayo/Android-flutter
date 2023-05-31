@@ -1,4 +1,4 @@
-final url = 'http://10.0.0.7:8080/';
+final url = 'http://192.168.1.40:8080/';
 final login = url + 'login';
 final register = url + 'registration';
 final recognizeDB = url + 'recognizeDB';
