@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController passwordController = TextEditingController();
   bool _isNotValidate = false;
   late SharedPreferences prefs;
+  Global global = new Global();
 
   @override
   void initState() {
@@ -30,26 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs = await SharedPreferences.getInstance();
   }
 
-  Future openDialog(text) => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(text),
-          actions: [
-            TextButton(
-              child: Text('close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      );
-
   void isReadyListening() async {
     var reqBody = {
       "email": emailController.text,
     };
-
     var response = await http.post(Uri.parse(levels),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
@@ -60,10 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print(jsonResponse['success']);
     } else {
       print("no");
-
       isDoneLevels = false;
-      openDialog(jsonResponse['success'] + ", please try again");
-      print(jsonResponse['success']);
     }
   }
 
@@ -86,7 +68,8 @@ class _LoginScreenState extends State<LoginScreen> {
           context, MaterialPageRoute(builder: (context) => HomePage()));
       print(jsonResponse['success']);
     } else {
-      openDialog(jsonResponse['success'] + ", please try again");
+      global.openDialog(
+          context, jsonResponse['success'] + ", please try again");
       print(jsonResponse['success']);
     }
   }

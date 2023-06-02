@@ -32,24 +32,11 @@ class RecordingState extends ChangeNotifier {
   FlutterSoundRecorder _audioRecorder = FlutterSoundRecorder();
   final microphoneRecorder = MicrophoneRecorder()..init();
   StreamSubscription<List<int>>? _microphoneStreamSubscription;
-  // Future openDialog(text) => showDialog(
-  //       context: context,
-  //       builder: (context) => AlertDialog(
-  //         title: Text(text),
-  //         actions: [
-  //           TextButton(
-  //             child: Text('close'),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //         ],
-  //       ),
-  //     );
+  Global global = new Global();
 
-  void EmotionRcognition() async {
+  void EmotionRcognition(BuildContext context) async {
     var reqBody = {
-      "email": "",
+      "email": userName,
     };
     var response = await http.post(Uri.parse(emotion),
         headers: {"Content-Type": "application/json"},
@@ -58,16 +45,18 @@ class RecordingState extends ChangeNotifier {
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
       String emotion = "fear"; ////replace in th response from server
-      //replace in the user name from db
       if (emotion == "fear") {
-        // openDialog("you are in danger");
+        global.openDialog(
+            context,
+            "you are in danger\ncall to number: " +
+                jsonResponse['emergencyNumber']);
       }
     } else {
       print('Something went wrong');
     }
   }
 
-  void RecognitionUserVoice() async {
+  void RecognitionUserVoice(BuildContext context) async {
     var reqBody = {
       "email": userName,
       "file": "audio_5_sec.aac",
@@ -77,14 +66,14 @@ class RecordingState extends ChangeNotifier {
         body: jsonEncode(reqBody));
     var jsonResponse = jsonDecode(response.body);
     if (jsonResponse['status']) {
-      print("your voice recognize with name ${userName}, it's you?");
-      EmotionRcognition();
+      print("recognized user");
+      EmotionRcognition(context);
     } else {
       print('Something went wrong');
     }
   }
 
-  Future<void> startRecording() async {
+  Future<void> startRecording(BuildContext context) async {
     _isRecording = true;
     await Permission.microphone.request();
     // start recording
@@ -96,24 +85,13 @@ class RecordingState extends ChangeNotifier {
     await Future.delayed(Duration(seconds: 5));
     await _audioRecorder.stopRecorder();
     await _audioRecorder.closeAudioSession();
-    RecognitionUserVoice();
+    RecognitionUserVoice(context);
     await Future.delayed(Duration(seconds: 60));
     // schedule the recording to stop after the specified duration
-
     print("record background");
-
-    // Timer(Duration(seconds: _recordingDuration), () async {
-    //   // Stop recording
-    //   await _audioRecorder.stopRecorder();
-    //   // Pause for 5 seconds
-    //   await Future.delayed(Duration(seconds: 5));
-    //   //   print("stop record background");
-    //   //   // RecognitionUserVoice();
-    //   _audioRecorder.startRecorder(toFile: 'audio_5_sec.aac');
-    // });
     notifyListeners();
     if (_isRecording) {
-      await startRecording();
+      await startRecording(context);
     }
   }
 

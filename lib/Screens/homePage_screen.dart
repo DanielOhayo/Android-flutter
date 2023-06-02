@@ -6,8 +6,10 @@ import 'package:flutter_dev/Screens/voiceLearn_screen.dart';
 import '../global.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dev/Screens/recordingState.dart';
-
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,24 +17,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  late SharedPreferences prefs;
+  TextEditingController emerNumController = TextEditingController();
 
-  Future openDialog(text) => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(text),
-          actions: [
-            TextButton(
-              child: Text('close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      );
+  late SharedPreferences prefs;
+  Global global = new Global();
+  List<Widget> textFields = [];
 
   Future openDialogVoiceLearn(text) => showDialog(
         context: context,
@@ -56,10 +45,32 @@ class _HomePageState extends State<HomePage> {
         ),
       );
 
+  Future openDialogEmerNum() => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          actions: [
+            TextField(
+                controller: emerNumController,
+                keyboardType: TextInputType.text,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'OpenSans',
+                )),
+            TextButton(
+              child: Text('Submit'),
+              onPressed: () {
+                submitEmerNum();
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        ),
+      );
+
   bool CheckLevelsForListening() {
     //check if done the levels - by global index
     if (!isDoneLevels) {
-      openDialog("you need to done all level of recognize");
+      global.openDialog(context, "you need to done all level of recognize");
       return false;
     }
     return true;
@@ -78,8 +89,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildVoiceLearnBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
-      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 25.0, horizontal: 35.0),
+      width: double.maxFinite,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(primary: Colors.black),
         onPressed: () {
@@ -96,6 +107,47 @@ class _HomePageState extends State<HomePage> {
         },
         child: Text(
           'Voice learn',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            letterSpacing: 1.5,
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  void submitEmerNum() async {
+    print("gg");
+    var reqBody = {
+      "email": userName,
+      "emergencyNumber": emerNumController.text,
+    };
+    var response = await http.post(Uri.parse(emergencyNum),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(reqBody));
+    var jsonResponse = jsonDecode(response.body);
+    if (jsonResponse['status']) {
+      print("yes");
+    } else {
+      print("no");
+    }
+  }
+
+  Widget _buildChangeEmerNumBtn() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 25.0, horizontal: 35.0),
+      width: double.maxFinite,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(primary: Colors.black),
+        onPressed: () {
+          openDialogEmerNum();
+          print('ChangeEmerNum button Pressed');
+        },
+        child: Text(
+          'Modify emergency number',
           style: TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             letterSpacing: 1.5,
@@ -152,26 +204,29 @@ class _HomePageState extends State<HomePage> {
               value: val_,
               onChanged: (newValue) {
                 if (CheckLevelsForListening()) {
-                  final recordingState =
-                      Provider.of<RecordingState>(context, listen: false);
-                  if (recordingState.isRecording) {
-                    recordingState.stopRecording();
-                  } else {
-                    recordingState.startRecording();
+                  if (CheckLevelsForListening()) {
+                    final recordingState =
+                        Provider.of<RecordingState>(context, listen: false);
+                    if (recordingState.isRecording) {
+                      recordingState.stopRecording();
+                    } else {
+                      recordingState.startRecording(context);
+                    }
+                    if (recordingState.isRecording == true) {
+                      newValue = false;
+                      print("dani off");
+                    } else {
+                      newValue = true;
+                      print("dani on");
+                    }
+                    setState(() {
+                      val_ = recordingState.isRecording;
+                    });
                   }
-                  if (recordingState.isRecording == true) {
-                    newValue = false;
-                    print("dani off");
-                  } else {
-                    newValue = true;
-                    print("dani on");
-                  }
-                  setState(() {
-                    val_ = recordingState.isRecording;
-                  });
                 }
               }),
           _buildVoiceLearnBtn(),
+          _buildChangeEmerNumBtn(),
           _buildbackBtn(),
         ],
       ),

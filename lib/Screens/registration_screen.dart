@@ -31,7 +31,30 @@ class _RegistrationState extends State<Registration> {
     prefs = await SharedPreferences.getInstance();
   }
 
+  Future openDialog(text) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+          actions: [
+            TextButton(
+              child: Text('Go to login page'),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()));
+              },
+            ),
+          ],
+        ),
+      );
+
   void registerUser() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
     var reqBody = {
       "email": emailController.text,
       "password": passwordController.text,
@@ -41,12 +64,10 @@ class _RegistrationState extends State<Registration> {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(reqBody));
     var jsonResponse = jsonDecode(response.body);
+    Navigator.of(context).pop();
 
     if (jsonResponse['status']) {
-      var myToken = jsonResponse['token'];
-      prefs.setString('token', myToken);
-      // Navigator.push(context,
-      //     MaterialPageRoute(builder: (context) => Dashboard(token: myToken)));
+      openDialog("You made it !");
       print('Success register');
     } else {
       print('Something went wrong');
@@ -144,7 +165,6 @@ class _RegistrationState extends State<Registration> {
           child: TextField(
             controller: emergencyNumberController,
             keyboardType: TextInputType.text,
-            obscureText: true,
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'OpenSans',
@@ -153,7 +173,7 @@ class _RegistrationState extends State<Registration> {
               border: InputBorder.none,
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
-                Icons.lock,
+                Icons.phone,
                 color: Colors.white,
               ),
               hintText: 'Enter an emergency number phone',
@@ -256,7 +276,11 @@ class _RegistrationState extends State<Registration> {
                         height: 30.0,
                       ),
                       _buildPasswordTF(),
+                      SizedBox(height: 30.0),
                       _buildNumberTF(),
+                      SizedBox(
+                        height: 30.0,
+                      ),
                       _buildRegisterBtn(),
                       _buildbackBtn(),
                     ],
