@@ -44,15 +44,12 @@ class RecordingState extends ChangeNotifier {
     var jsonResponse = jsonDecode(response.body);
     if (jsonResponse['status']) {
       print(jsonResponse['success']);
-      String emotion = "fear"; ////replace in th response from server
-      if (emotion == "fear") {
-        global.openDialog(
-            context,
-            "you are in danger\ncall to number: " +
-                jsonResponse['emergencyNumber']);
-      }
+      global.openDialog(
+          context,
+          "you are in danger\ncall to number: " +
+              jsonResponse['emergencyNumber']);
     } else {
-      print('Something went wrong');
+      print('not in denger');
     }
   }
 
