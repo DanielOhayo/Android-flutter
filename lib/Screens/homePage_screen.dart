@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -51,7 +52,10 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextField(
                 controller: emerNumController,
-                keyboardType: TextInputType.text,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
                 style: TextStyle(
                   color: Colors.black,
                   fontFamily: 'OpenSans',
@@ -62,7 +66,13 @@ class _HomePageState extends State<HomePage> {
                 submitEmerNum();
                 Navigator.of(context).pop();
               },
-            )
+            ),
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ],
         ),
       );

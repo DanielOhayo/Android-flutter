@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dev/Screens/login_screen.dart';
+import '../global.dart';
 
 class Registration extends StatefulWidget {
   @override
@@ -19,6 +20,7 @@ class _RegistrationState extends State<Registration> {
 
   bool _isNotValidate = false;
   late SharedPreferences prefs;
+  Global global = new Global();
 
   @override
   void initState() {
@@ -70,6 +72,7 @@ class _RegistrationState extends State<Registration> {
       openDialog("You made it !");
       print('Success register');
     } else {
+      global.openDialog(context, jsonResponse['success']);
       print('Something went wrong');
     }
   }
@@ -164,7 +167,10 @@ class _RegistrationState extends State<Registration> {
           height: 60.0,
           child: TextField(
             controller: emergencyNumberController,
-            keyboardType: TextInputType.text,
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly
+            ],
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'OpenSans',
